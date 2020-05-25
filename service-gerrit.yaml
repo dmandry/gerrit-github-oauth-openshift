@@ -1,0 +1,19 @@
+﻿kind: Service
+apiVersion: v1
+metadata:
+  name: gerrit
+  namespace: dmandry
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: 29418-tcp
+      protocol: TCP
+      port: 29418
+      targetPort: 29418
+  selector:
+    app: gerrit
+  type: ClusterIP
+  sessionAffinity: None

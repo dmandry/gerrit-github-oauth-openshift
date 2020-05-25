@@ -1,0 +1,18 @@
+﻿kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: gerrit
+  namespace: dmandry
+spec:
+  host: gerrit-dmandry.apps.ca-central-1.starter.openshift-online.com
+  path: /
+  to:
+    kind: Service
+    name: gerrit
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
