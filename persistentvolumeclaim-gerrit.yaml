@@ -1,0 +1,13 @@
+﻿kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gerrit
+  namespace: dmandry
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: gp2
+  volumeMode: Filesystem

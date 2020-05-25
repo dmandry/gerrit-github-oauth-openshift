@@ -1,0 +1,126 @@
+﻿kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: gerrit
+  namespace: dmandry
+  labels:
+    app: gerrit
+    app.kubernetes.io/component: gerrit
+    app.kubernetes.io/instance: gerrit
+    app.kubernetes.io/part-of: gerrit
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: gerrit
+    deploymentconfig: gerrit
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gerrit
+        deploymentconfig: gerrit
+      annotations:
+        openshift.io/generated-by: OpenShiftWebConsole
+    spec:
+      volumes:
+        - name: gerrit
+          persistentVolumeClaim:
+            claimName: gerrit
+      containers:
+        - resources:
+            limits:
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: gerrit
+          env:
+            - name: CANONICAL_WEB_URL
+              value: >-
+                https://gerrit-dmandry.apps.ca-central-1.starter.openshift-online.com/
+            - name: GITHUB_OAUTH_ID
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth
+                  key: id
+            - name: GITHUB_OAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth
+                  key: secret
+            - name: HTTPD_LISTEN_URL
+              value: 'proxy-https://*:8080'
+          ports:
+            - containerPort: 29418
+              protocol: TCP
+            - containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: gerrit
+              mountPath: /var/gerrit/db
+              subPath: db
+            - name: gerrit
+              mountPath: /var/gerrit/etc
+              subPath: etc
+            - name: gerrit
+              mountPath: /var/gerrit/git
+              subPath: git
+            - name: gerrit
+              mountPath: /var/gerrit/index
+              subPath: index
+            - name: gerrit
+              mountPath: /var/gerrit/cache
+              subPath: cache
+            - name: gerrit
+              mountPath: /var/gerrit/static
+              subPath: static
+            - name: gerrit
+              mountPath: /var/gerrit/logs
+              subPath: logs
+            - name: gerrit
+              mountPath: /var/gerrit/data
+              subPath: data
+            - name: gerrit
+              mountPath: /var/gerrit/tmp
+              subPath: tmp
+            - name: gerrit
+              mountPath: /.config
+              subPath: config
+            - name: gerrit
+              mountPath: /var/gerrit/ssh
+              subPath: ssh
+            - name: gerrit
+              mountPath: /var/gerrit/secure
+              subPath: secure
+            - name: gerrit
+              mountPath: /var/gerrit/plugins
+              subPath: plugins
+            - name: gerrit
+              mountPath: /.gerritcodereview
+              subPath: gerritcodereview
+          terminationMessagePolicy: File
+          image: 'dmandry/gerrit-github-oauth:3.1.4-centos7'
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
